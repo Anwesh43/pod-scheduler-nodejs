@@ -4,8 +4,8 @@ const appClient = (baseUrl) => {
     return {
         async poll() {
             const {data} = await axios.get(`${baseUrl}/poll`)
-            console.log('DATA', data)
-            return data 
+            //console.log('DATA', data)
+            return data.data
         }
     }
 }

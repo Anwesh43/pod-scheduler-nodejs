@@ -1,6 +1,34 @@
 const net = require('net')
 const cp = require('child_process')
 
+const execPromise = (command) => new Promise((resolve, reject) => cp.exec(command, (err, stdout) => {
+    if (err) {
+        reject(err);
+    } else {
+        resolve(stdout)
+    }
+}))
+
+class CommandExecutor {
+
+    commands = []
+
+    addCommand(command) {
+        this.commands.push(command)
+    }
+
+    async executeCommands() {
+        for (let i = 0; i < this.commands.length; i++) {
+            try {
+                const data = await execPromise(this.commands[i])
+                console.log("EXECUTION_DATA", data)
+            } catch(err) {
+                console.log("EXECUTION_ERROR", err);
+            }
+        }
+    }
+}
+
 class Pod {
 
     started = false 
@@ -11,6 +39,7 @@ class Pod {
     constructor(portNumber, cb) {
         this.cb = cb
         this.portNumber = portNumber 
+        this.commandExecutor = new CommandExecutor()
     }
     start() {
         return new Promise((resolve, reject) => {
@@ -18,15 +47,14 @@ class Pod {
                 console.log("starting server")
                 this.server = net.createServer((socket) => {
                     this.cb(socket)
-                    socket.on('data', (data) => {
+                    socket.on('data', async (data) => {
                         const podData = JSON.parse(data.toString())
                         const {image, port} = podData 
-                        cp.exec(`docker run ${image} -p ${port}:${port}`, (err) => {
-                            if (err == nil) {
-                                console.log(`started running ${image} on ${port}`)
-                                this.runningProcess = true 
-                            }
-                        })
+                        this.commandExecutor.addCommand(`docker pull ${image}`)
+                        this.commandExecutor.addCommand(`docker run -d ${image} -p ${port}:${port}`)
+                        await this.commandExecutor.executeCommands()
+                        console.log(`started running ${image} on ${port}`)
+                        this.runningProcess = true 
                     })
                 })
                 console.log("PORT_NUMBER", this.portNumber)

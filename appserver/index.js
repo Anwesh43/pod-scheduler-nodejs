@@ -1,5 +1,5 @@
 const fastify = require('fastify')
-const reqHandler = require('./ReqHandler')0
+const reqHandler = require('./ReqHandler')
 const appClient = require('./appClient')
 const start = async () => {
     const server = fastify()
