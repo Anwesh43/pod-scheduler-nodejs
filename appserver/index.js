@@ -1,5 +1,6 @@
 const fastify = require('fastify')
-const reqHandler = require('./ReqHandler')
+const reqHandler = require('./ReqHandler')0
+const appClient = require('./appClient')
 const start = async () => {
     const server = fastify()
     const queue = []
@@ -24,7 +25,12 @@ const start = async () => {
         }
     
     })
+
+    server.get('/poll', (req, res) => {
+       const data = reqHandler.poll()
+       res.send({data})
+    })
     await server.listen(3000)
 }
 
-module.exports = {start} 
+module.exports = {start, appClient} 
